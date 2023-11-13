@@ -1,0 +1,177 @@
+function sendMaintenanceEmails() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  var dataRange = sheet.getRange(2, 1, lastRow - 1, 13); // Adjusted the range to include more columns
+  var data = dataRange.getValues();
+
+  var emailSubject = "Maintenance Records - Monthly Update";
+  var senderEmails = ["bilionsales@gmail.com", "theone4uali@gmail.com"]; // Replace with your Gmail addresses
+
+  for (var i = 0; i < data.length; i++) {
+    var rowData = data[i];
+    var flatNo = rowData[1]; // Assuming Flat No. is in column B
+    var recipientEmail = rowData[12]; // Assuming email addresses are in column M
+
+    // Skip if the recipient email is not valid
+    if (!isValidEmail(recipientEmail)) {
+      Logger.log("Skipping invalid email for Flat No: " + flatNo);
+      continue;
+    }
+
+    // Get the expenses range I3:K18 for each flat
+    var expensesRange = sheet.getRange("I3:K18");
+    var expensesData = expensesRange.getValues();
+
+    // Prepare email body for each flat
+    var emailBody = "Dear Flat Owner,\n\nPlease find the monthly maintenance records below for Flat No: " + flatNo + ":\n\n" +
+      "Collection: " + rowData[2] + "\n" +
+      "Previous Due: " + rowData[4] + "\n" +
+      "Receipt No/Transaction Id: " + rowData[6] + "\n" +
+      "Special Collections: " + rowData[7] + "\n" +
+      "Expenses:\n" + getFormattedExpenses(expensesData) + "\n" +
+      "Refunds: " + rowData[11] + "\n\n";
+
+    // Send email
+    sendEmails(senderEmails, recipientEmail, emailSubject, emailBody);
+  }
+}
+
+function sendEmails(senderEmails, recipientEmail, subject, body) {
+  // Send email from each sender email address
+  for (var i = 0; i < senderEmails.length; i++) {
+    MailApp.sendEmail({
+      to: recipientEmail,
+      subject: subject,
+      body: body,
+      from: senderEmails[i],
+    });
+  }
+}
+
+function getFormattedExpenses(expensesData) {
+  var formattedExpenses = "";
+
+  // Assuming the expenses data is in the format "Item Purchased Amount" as mentioned in the original request
+  for (var i = 0; i < expensesData.length; i++) {
+    var expenseItem = expensesData[i].join(": ");
+    formattedExpenses += expenseItem + "\n";
+  }
+
+  return formattedExpenses;
+}
+
+function isValidEmail(email) {
+  // A simple email validation regex
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+
+
+
+
+function sendEmails(senderEmails, recipientEmail, subject, body) {
+  // Send email from each sender email address
+  for (var i = 0; i < senderEmails.length; i++) {
+    MailApp.sendEmail({
+      to: recipientEmail,
+      subject: subject,
+      body: body,
+      from: senderEmails[i],
+    });
+  }
+}
+
+function getFormattedExpenses(expensesData) {
+  var formattedExpenses = "";
+
+  // Assuming the expenses data is in the format "Item Purchased Amount" as mentioned in the original request
+  for (var i = 0; i < expensesData.length; i++) {
+    var expenseItem = expensesData[i].join(": ");
+    formattedExpenses += expenseItem + "\n";
+  }
+
+  return formattedExpenses;
+}
+
+function isValidEmail(email) {
+  // A simple email validation regex
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+
+final code :
+
+
+function sendMaintenanceEmails() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var lastRow = sheet.getLastRow();
+  var dataRange = sheet.getRange(2, 1, lastRow - 1, 13); // Adjusted the range to include more columns
+  var data = dataRange.getValues();
+
+  var emailSubject = "Maintenance Records - Monthly Update";
+
+  for (var i = 0; i < data.length; i++) {
+    var rowData = data[i];
+    var flatNo = rowData[1]; // Assuming Flat No. is in column B
+
+    // Assuming email addresses are in columns M (M3:M18)
+    var recipientEmail = sheet.getRange(i + 2, 13).getValue(); 
+
+    // Skip if the recipient email is not valid
+    if (!isValidEmail(recipientEmail)) {
+      Logger.log("Skipping invalid email for Flat No: " + flatNo);
+      continue;
+    }
+
+    // Get the expenses range I3:K18 for each flat
+    var expensesRange = sheet.getRange("I3:K18");
+    var expensesData = expensesRange.getValues();
+
+    // Concatenate values within the specified range for "Collection" and "Previous Due"
+    var collectionValues = rowData.slice(2, 4).join(": ");
+    var previousDueValues = rowData.slice(4, 6).join(": ");
+
+    // Prepare email body for each flat
+    var emailBody = "Dear Flat Owner,\n\nPlease find the monthly maintenance records below for Flat No: " + flatNo + ":\n\n" +
+      "Collection: " + collectionValues + "\n" +
+      "Previous Due: " + previousDueValues + "\n" +
+      "Receipt No/Transaction Id: " + rowData[6] + "\n" +
+      "Special Collections: " + rowData[7] + "\n" +
+      "Expenses:\n" + getFormattedExpenses(expensesData) + "\n" +
+      "Refunds: " + rowData[11] + "\n\n";
+
+     // Attach the Monthly Statement Google Sheet
+    var file = DriveApp.getFileById(SpreadsheetApp.getActiveSpreadsheet().getId());
+    var url = file.getUrl();
+
+    // Send email using GmailApp with attachment
+    GmailApp.sendEmail(
+      recipientEmail,
+      emailSubject,
+      emailBody,
+      {
+        attachments: [file.getAs(MimeType.PDF)], // You can change the MimeType as needed
+      }
+    );
+  }
+}
+
+function getFormattedExpenses(expensesData) {
+  var formattedExpenses = "";
+
+  // Assuming the expenses data is in the format "Item Purchased Amount" as mentioned in the original request
+  for (var i = 0; i < expensesData.length; i++) {
+    var expenseItem = expensesData[i].join(": ");
+    formattedExpenses += expenseItem + "\n";
+  }
+
+  return formattedExpenses;
+}
+
+function isValidEmail(email) {
+  // A simple email validation regex
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
